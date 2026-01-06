@@ -18,11 +18,12 @@ A full-stack, real-time medical assistance chatbot application that provides gen
 
 ### Backend (FastAPI + Python)
 - **RESTful API**: Single `/chat` endpoint for seamless communication
-- **AI Integration**: Powered by Google Gemini Pro model
+- **AI Integration**: Powered by Google Gemini 2.5 Flash model
 - **Session Management**: In-memory conversation history storage
 - **Error Handling**: Robust error handling with graceful degradation
-- **CORS Support**: Properly configured for frontend communication
+- **CORS Support**: Properly configured for frontend and production deployment
 - **Security**: Environment-based API key management
+- **Production Ready**: Gunicorn + Uvicorn ASGI workers
 
 ### AI Capabilities (Google Gemini)
 - **First Aid Guidance**: Step-by-step instructions and precautions
@@ -42,10 +43,15 @@ A full-stack, real-time medical assistance chatbot application that provides gen
 
 ### Backend
 - FastAPI (Python web framework)
-- Google Generative AI (Gemini Pro)
-- Uvicorn ASGI server
+- Google Generative AI (Gemini 2.5 Flash)
+- Gunicorn + Uvicorn ASGI workers
 - Pydantic for data validation
 - Python-dotenv for environment management
+
+### Deployment
+- Docker & Docker Compose
+- Nginx for frontend static serving
+- Render.com compatible configuration
 
 ## Project Structure
 
@@ -58,11 +64,16 @@ medical-chatbot/
 │   │   ├── index.css         # Tailwind CSS imports
 │   │   └── main.tsx          # Application entry point
 │   ├── package.json          # Frontend dependencies
+│   ├── Dockerfile            # Frontend Docker image
+│   ├── nginx.conf            # Nginx configuration for production
 │   └── tailwind.config.js    # Tailwind configuration
 ├── backend/                  # FastAPI server
 │   ├── main.py              # FastAPI application
 │   ├── requirements.txt     # Python dependencies
+│   ├── Dockerfile            # Backend Docker image
 │   └── .env.example         # Environment variables template
+├── docker-compose.yml        # Multi-container orchestration
+├── .dockerignore             # Docker build exclusions
 ├── .github/
 │   └── copilot-instructions.md # Development guidelines
 └── README.md                # This file
@@ -127,7 +138,33 @@ npm install
 
 ## Running the Application
 
-### Quick Start (Recommended)
+### Option 1: Docker (Recommended for Production)
+
+**Prerequisites:**
+- Docker and Docker Compose installed
+- Google Gemini API key in `backend/.env`
+
+**Run with Docker Compose:**
+```bash
+# Build and start both services
+docker-compose up --build
+
+# Run in background
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+```
+
+**Access the application:**
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Option 2: Local Development Scripts
 Use the provided startup scripts to run both servers:
 
 **Windows PowerShell:**
@@ -140,7 +177,19 @@ Use the provided startup scripts to run both servers:
 start-dev.bat
 ```
 
-### Manual Start
+**macOS/Linux:**
+```bash
+# Terminal 1 - Backend
+cd backend
+source ../venv/bin/activate
+python main.py
+
+# Terminal 2 - Frontend
+cd frontend
+npm run dev
+```
+
+### Option 3: Manual Start
 
 #### Start Backend Server
 ```powershell
@@ -224,18 +273,60 @@ The AI is programmed to immediately recommend emergency services for:
 - Responsive design principles
 - Accessibility considerations
 
-## Deployment Considerations
+## Deployment
+
+### Docker Deployment
+
+**Build images:**
+```bash
+# Backend
+docker build -t medical-backend:latest ./backend
+
+# Frontend
+docker build -t medical-frontend:latest ./frontend
+```
+
+**Push to registry (Docker Hub, AWS ECR, etc.):**
+```bash
+docker tag medical-backend:latest your-registry/medical-backend:latest
+docker push your-registry/medical-backend:latest
+
+docker tag medical-frontend:latest your-registry/medical-frontend:latest
+docker push your-registry/medical-frontend:latest
+```
+
+### Render.com Deployment
+
+**Backend (Web Service):**
+- Runtime: Python 3.13
+- Build Command: `cd backend && pip install -r requirements.txt`
+- Start Command: `cd backend && gunicorn --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT main:app`
+- Environment Variable: `GEMINI_API_KEY` (add in Render dashboard)
+
+**Frontend (Static Site):**
+- Build Command: `npm install && npm run build`
+- Publish Directory: `dist`
+- Root Directory: `frontend`
+- Environment Variable: `VITE_API_URL=https://your-backend-name.onrender.com`
 
 ### Environment Variables
-- `GEMINI_API_KEY`: Required for AI functionality
+
+**Backend (.env):**
+- `GEMINI_API_KEY`: Required - Your Google Gemini API key
 - `HOST`: Server host (default: 0.0.0.0)
 - `PORT`: Server port (default: 8000)
+- `DEBUG`: Debug mode (default: True)
+
+**Frontend:**
+- `VITE_API_URL`: Backend API URL (production only)
 
 ### Security Notes
-- API keys should be stored securely in environment variables
-- CORS is configured for development; adjust for production
+- API keys must be stored securely in environment variables
+- Never commit `.env` files to version control
+- CORS is configured for both development and production
 - Consider rate limiting for production deployments
 - Implement proper logging and monitoring
+- Rotate API keys regularly
 
 ## Contributing
 
