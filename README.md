@@ -1,6 +1,6 @@
-# Medical Assistance Chatbot
+# AI-powered Enterprise Assistance Platform
 
-A full-stack, real-time medical assistance chatbot application that provides general medical information, first aid guidance, and supportive care through an AI-powered interface.
+A full-stack, real-time ai-powered medical assistance chatbot application that provides general medical information, first aid guidance, and supportive care through an AI-powered interface.
 
 ## ⚠️ Important Disclaimer
 
